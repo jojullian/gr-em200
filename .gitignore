@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+*.py.bak
+# código generado por GRC al ejecutar los ejemplos
+examples/*.py

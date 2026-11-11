@@ -1,0 +1,247 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: 'Panorama scan (PScan) del R&S EM200: barrido en vivo y promedio.'
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: em200ps
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: EM200 - Panorama Scan
+    window_size: (1200,800)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: avg_alpha
+  id: variable_qtgui_range
+  parameters:
+    comment: Peso del promedio exponencial (1 = sin promediar)
+    gui_hint: 0,0,1,1
+    label: Promedio (alfa)
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0.01'
+    step: '0.01'
+    stop: '1'
+    value: '0.1'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [616, 12]
+    rotation: 0
+    state: enabled
+- name: f_start
+  id: variable
+  parameters:
+    comment: Frecuencia inicial (Hz). Cambiar y volver a ejecutar
+    value: 88e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 12]
+    rotation: 0
+    state: enabled
+- name: f_stop
+  id: variable
+  parameters:
+    comment: Frecuencia final (Hz)
+    value: 108e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [296, 12]
+    rotation: 0
+    state: enabled
+- name: npoints
+  id: variable
+  parameters:
+    comment: Puntos por barrido
+    value: int(round((f_stop - f_start) / step)) + 1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [488, 12]
+    rotation: 0
+    state: enabled
+- name: step
+  id: variable
+  parameters:
+    comment: 'Paso / RBW (Hz). Validos: 100, 125, 200, 250, 500, 625, 1k, 1.25k, 2k,
+      2.5k, 3.125k, 5k, 6.25k, 8.333k, 10k, 12.5k, 20k, 25k, 50k, 100k, 200k, 500k,
+      1M, 2M'
+    value: 25e3
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [392, 12]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Habilitalo para ver en consola el pico de cada barrido
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 380]
+    rotation: 0
+    state: disabled
+- name: em200_pscan_source_0
+  id: em200_pscan_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ip: 192.168.29.200
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    port: '5555'
+    progressive: 'True'
+    refresh: '0.2'
+    duplicate: 'True'
+    restore: 'True'
+    start: f_start
+    step: step
+    stop: f_stop
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 196]
+    rotation: 0
+    state: enabled
+- name: qtgui_vector_sink_f_0
+  id: qtgui_vector_sink_f
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    grid: 'True'
+    gui_hint: 1,0,1,1
+    label1: Barrido
+    label10: ''
+    label2: Promedio
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '"Panorama Scan EM200"'
+    nconnections: '2'
+    ref_level: '0'
+    showports: 'False'
+    update_time: '0.10'
+    vlen: npoints
+    width1: '1'
+    width10: '1'
+    width2: '2'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    x_axis_label: '"Frecuencia"'
+    x_start: f_start / 1e6
+    x_step: step / 1e6
+    x_units: '"MHz"'
+    y_axis_label: '"Nivel"'
+    y_units: '"dBuV"'
+    ymax: '100'
+    ymin: '-10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [784, 212.0]
+    rotation: 0
+    state: enabled
+- name: single_pole_iir_filter_xx_0
+  id: single_pole_iir_filter_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: avg_alpha
+    comment: Promedio exponencial barrido a barrido
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: npoints
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 260]
+    rotation: 0
+    state: enabled
+
+connections:
+- [em200_pscan_source_0, '0', qtgui_vector_sink_f_0, '0']
+- [em200_pscan_source_0, '0', single_pole_iir_filter_xx_0, '0']
+- [em200_pscan_source_0, sweep, blocks_message_debug_0, print]
+- [single_pole_iir_filter_xx_0, '0', qtgui_vector_sink_f_0, '1']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

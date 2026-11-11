@@ -1,0 +1,259 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: 'Analizador de espectro con el IQ del R&S EM200 por Ethernet (EB200/TCP).'
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: em200_espectro
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: EM200 - Analizador de espectro
+    window_size: (1000,1000)
+  states:
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: import_em200
+  id: import
+  parameters:
+    alias: ''
+    comment: 'Para usar em200.sample_rate() en las variables'
+    imports: import em200
+  states:
+    coordinate: [200, 12]
+    rotation: 0
+    state: enabled
+- name: freq
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: 0,0,1,2
+    label: Frecuencia (Hz)
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: 20e6
+    step: 100e3
+    stop: 8e9
+    value: 90.5e6
+    widget: counter_slider
+  states:
+    coordinate: [328, 12]
+    rotation: 0
+    state: enabled
+- name: bw
+  id: variable_qtgui_chooser
+  parameters:
+    comment: 'Con un enlace de 100 Mb/s el maximo util es 1.25 MHz (1.6 MS/s)'
+    gui_hint: 1,0,1,1
+    label: Ancho de banda
+    label0: ''
+    label1: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    labels: '["120 kHz (200 kS/s)", "300 kHz (400 kS/s)", "500 kHz (800 kS/s)", "1 MHz (1.6 MS/s)", "1.25 MHz (1.6 MS/s)", "2 MHz (3.2 MS/s, requiere 1 Gb/s)", "5 MHz (6.4 MS/s, requiere 1 Gb/s)"]'
+    num_opts: '0'
+    option0: '0'
+    option1: '1'
+    option2: '2'
+    option3: '3'
+    option4: '4'
+    options: '[120e3, 300e3, 500e3, 1e6, 1.25e6, 2e6, 5e6]'
+    orient: QtCore.Qt.QVBoxLayout
+    type: real
+    value: 1e6
+    widget: combo_box
+  states:
+    coordinate: [488, 12]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: 'Tasa IQ que entrega el EM200 para el ancho de banda elegido'
+    value: em200.sample_rate(bw)
+  states:
+    coordinate: [648, 12]
+    rotation: 0
+    state: enabled
+- name: em200_iq_source_0
+  id: em200_iq_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: bw
+    buffer_seconds: '2.0'
+    comment: ''
+    freq: freq
+    if_mode: '"SHORT"'
+    ip: 192.168.29.200
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    port: '5555'
+    restore: 'True'
+  states:
+    coordinate: [16, 200]
+    rotation: 0
+    state: enabled
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '0.2'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'True'
+    fc: freq
+    fftsize: '2048'
+    freqhalf: 'True'
+    grid: 'True'
+    gui_hint: 2,0,1,2
+    label: Relative Gain
+    label1: EM200
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '"Espectro EM200"'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '0'
+    ymin: '-140'
+  states:
+    coordinate: [328, 180]
+    rotation: 0
+    state: enabled
+- name: qtgui_waterfall_sink_x_0
+  id: qtgui_waterfall_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '0'
+    color10: '0'
+    color2: '0'
+    color3: '0'
+    color4: '0'
+    color5: '0'
+    color6: '0'
+    color7: '0'
+    color8: '0'
+    color9: '0'
+    comment: ''
+    fc: freq
+    fftsize: '2048'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: 3,0,1,2
+    int_max: '0'
+    int_min: '-140'
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '"Waterfall EM200"'
+    nconnections: '1'
+    showports: 'False'
+    type: complex
+    update_time: '0.10'
+    wintype: window.WIN_BLACKMAN_hARRIS
+  states:
+    coordinate: [328, 320]
+    rotation: 0
+    state: enabled
+
+connections:
+- [em200_iq_source_0, '0', qtgui_freq_sink_x_0, '0']
+- [em200_iq_source_0, '0', qtgui_waterfall_sink_x_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

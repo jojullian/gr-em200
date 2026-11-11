@@ -1,0 +1,107 @@
+id: em200_df_source
+label: R&S EM200 DF Source
+category: '[R&S EM200]'
+flags: [python, throttle]
+
+parameters:
+- id: ip
+  label: IP del EM200
+  dtype: string
+  default: 192.168.29.200
+- id: port
+  label: Puerto SCPI
+  dtype: int
+  default: '5555'
+  hide: part
+- id: freq
+  label: Frecuencia (Hz)
+  dtype: real
+  default: 100e6
+- id: df_bandwidth
+  label: Ancho de banda DF (Hz)
+  dtype: real
+  default: 15e3
+- id: span
+  label: Span panorama (Hz)
+  dtype: real
+  default: 1e6
+- id: meas_time
+  label: Tiempo de medida (s)
+  dtype: real
+  default: '0.5'
+- id: df_mode
+  label: Modo DF ("CONT"/"NORM"/"GATE")
+  dtype: raw
+  default: '"CONT"'
+- id: threshold
+  label: Umbral (dBµV)
+  dtype: int
+  default: '10'
+- id: hold_last
+  label: Mantener último azimut
+  dtype: bool
+  default: 'True'
+  options: ['True', 'False']
+  option_labels: [Sí, 'No (NaN)']
+  hide: part
+- id: restore
+  label: Restaurar equipo al parar
+  dtype: bool
+  default: 'True'
+  options: ['True', 'False']
+  option_labels: [Sí, 'No']
+  hide: part
+
+outputs:
+- label: azimut
+  domain: stream
+  dtype: float
+- label: calidad
+  domain: stream
+  dtype: float
+- label: nivel
+  domain: stream
+  dtype: float
+- label: valido
+  domain: stream
+  dtype: float
+- label: df
+  domain: message
+  id: df
+  optional: true
+
+asserts:
+- ${ freq >= 8e3 and freq <= 8e9 }
+- ${ meas_time >= 0.1 and meas_time <= 10 }
+
+templates:
+  imports: import em200
+  make: em200.df_source(ip=${ip}, port=${port}, freq=${freq}, df_bandwidth=${df_bandwidth}, span=${span},
+    meas_time=${meas_time}, df_mode=${df_mode}, threshold=${threshold}, hold_last=${hold_last}, restore=${restore})
+  callbacks:
+  - set_freq(${freq})
+  - set_df_bandwidth(${df_bandwidth})
+  - set_span(${span})
+  - set_meas_time(${meas_time})
+  - set_df_mode(${df_mode})
+  - set_threshold(${threshold})
+
+documentation: |-
+  Radiogoniometría (DF) del R&S EM200 a partir de la traza DFPan (EB200 sobre TCP), modo canal único.
+  Requiere la opción R&S CS-DF y una antena DF conectada (RF + AUX1).
+
+  Salidas (una muestra por medida, ~10 por segundo):
+    azimut  [°]    con "Mantener último" = Sí conserva el último valor válido (apto para el QT GUI Compass)
+    calidad [%]    0 cuando la marcación no es válida
+    nivel   [dBµV] en la frecuencia de recepción
+    valido  1 / 0
+  Puerto de mensajes 'df': diccionario con azimut, calidad, nivel, elevación, rumbo de la brújula,
+  posición GPS, ancho de banda, tiempo de medida y timestamp.
+
+  Anchos de banda DF: 50 Hz ... 2 MHz (valores discretos; se usa el más cercano).
+  Span: 1 kHz ... 40 MHz. El BW DF máximo depende del span.
+  Para DF en movimiento el manual recomienda 0.5 s de tiempo de medida.
+
+  Al parar elimina la ruta de datos y, si "Restaurar" = Sí, deja el equipo como estaba.
+
+file_format: 1

@@ -1,0 +1,74 @@
+id: em200_iq_source
+label: R&S EM200 IQ Source
+category: '[R&S EM200]'
+flags: [python, throttle]
+
+parameters:
+- id: ip
+  label: IP del EM200
+  dtype: string
+  default: 192.168.29.200
+- id: port
+  label: Puerto SCPI
+  dtype: int
+  default: '5555'
+  hide: part
+- id: freq
+  label: Frecuencia (Hz)
+  dtype: real
+  default: 100e6
+- id: bandwidth
+  label: Ancho de banda (Hz)
+  dtype: real
+  default: 1e6
+- id: if_mode
+  label: Formato IQ
+  dtype: enum
+  default: '"SHORT"'
+  options: ['"SHORT"', '"LONG"']
+  option_labels: [16 bit (SHORT), 32 bit (LONG)]
+- id: restore
+  label: Restaurar equipo al parar
+  dtype: bool
+  default: 'True'
+  options: ['True', 'False']
+  option_labels: [Sí, 'No']
+  hide: part
+- id: buffer_seconds
+  label: Buffer (s)
+  dtype: real
+  default: '2.0'
+  hide: part
+
+outputs:
+- domain: stream
+  dtype: complex
+
+asserts:
+- ${ freq >= 8e3 and freq <= 8e9 }
+
+templates:
+  imports: import em200
+  make: em200.iq_source(ip=${ip}, port=${port}, freq=${freq}, bandwidth=${bandwidth}, if_mode=${if_mode},
+    restore=${restore}, buffer_seconds=${buffer_seconds})
+  callbacks:
+  - set_freq(${freq})
+  - set_bandwidth(${bandwidth})
+
+documentation: |-
+  Fuente IQ (complex64, normalizado a +-1) desde un receptor R&S EM200 por Ethernet,
+  usando el protocolo EB200 (traza IF, tag 901) sobre TCP (puerto SCPI + 10).
+
+  La tasa de muestreo depende del ancho de banda (tabla 7-48 del manual del EM200).
+  Para conocerla en el flowgraph, usa:  em200.sample_rate(bandwidth)
+    120 kHz -> 200 kS/s | 500 kHz -> 800 kS/s | 1 MHz -> 1.6 MS/s
+    2 MHz -> 3.2 MS/s   | 5 MHz -> 6.4 MS/s   | 10 MHz -> 12.8 MS/s
+  Si el ancho de banda no es uno de los del equipo, se usa el más cercano.
+
+  Al arrancar pone el equipo en app Receiver, FFM, demodulación IQ y activa la IF remota.
+  Al parar elimina la ruta de datos y, si "Restaurar" = Sí, deja el equipo como estaba.
+
+  Emite tags 'rx_freq' y 'rx_rate' al inicio y cuando cambia la frecuencia o la tasa.
+  Si el flowgraph no consume a tiempo, descarta datos y muestra 'O' en la consola.
+
+file_format: 1

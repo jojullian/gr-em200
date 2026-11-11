@@ -1,0 +1,103 @@
+id: em200_pscan_source
+label: R&S EM200 PScan Source
+category: '[R&S EM200]'
+flags: [python, throttle]
+
+parameters:
+- id: ip
+  label: IP del EM200
+  dtype: string
+  default: 192.168.29.200
+- id: port
+  label: Puerto SCPI
+  dtype: int
+  default: '5555'
+  hide: part
+- id: start
+  label: Inicio (Hz)
+  dtype: real
+  default: 88e6
+- id: stop
+  label: Fin (Hz)
+  dtype: real
+  default: 108e6
+- id: step
+  label: Paso / RBW (Hz)
+  dtype: real
+  default: 25e3
+- id: refresh
+  label: Refresco pantalla (s)
+  dtype: real
+  default: '0.2'
+- id: progressive
+  label: Barrido progresivo
+  dtype: bool
+  default: 'True'
+  options: ['True', 'False']
+  option_labels: [Sí (pinta cada trozo al llegar), 'No (solo barridos completos)']
+- id: duplicate
+  label: Corrección QT Vector Sink
+  dtype: bool
+  default: 'True'
+  options: ['True', 'False']
+  option_labels: [Sí (enviar cada imagen 2 veces), 'No']
+  hide: part
+- id: restore
+  label: Restaurar equipo al parar
+  dtype: bool
+  default: 'True'
+  options: ['True', 'False']
+  option_labels: [Sí, 'No']
+  hide: part
+
+outputs:
+- label: barrido
+  domain: stream
+  dtype: float
+  vlen: ${ int(round((stop - start) / float(step))) + 1 }
+- label: sweep
+  domain: message
+  id: sweep
+  optional: true
+
+asserts:
+- ${ start >= 8e3 and stop <= 8e9 and stop > start }
+- ${ step in (100, 125, 200, 250, 500, 625, 1e3, 1250, 2e3, 2500, 3125, 5e3, 6250, 8333, 10e3, 12500, 20e3, 25e3, 50e3, 100e3, 200e3, 500e3, 1e6, 2e6) }
+- ${ int(round((stop - start) / float(step))) + 1 <= 200000 }
+
+templates:
+  imports: import em200
+  make: em200.pscan_source(ip=${ip}, port=${port}, start=${start}, stop=${stop}, step=${step}, restore=${restore},
+    refresh=${refresh}, progressive=${progressive}, duplicate=${duplicate})
+  callbacks:
+  - set_refresh(${refresh})
+
+documentation: |-
+  Panorama scan (PScan) del R&S EM200 (opción R&S CS-PS) por EB200 sobre TCP.
+
+  Pasos válidos (Hz): 100, 125, 200, 250, 500, 625, 1k, 1.25k, 2k, 2.5k, 3.125k, 5k, 6.25k, 8.333k,
+  10k, 12.5k, 20k, 25k, 50k, 100k, 200k, 500k, 1M, 2M.
+
+  Salida: vectores float de longitud fija con el nivel en dBµV por canal:
+     puntos = (Fin - Inicio) / Paso + 1      (p. ej. 88-108 MHz a 25 kHz -> 801)
+  Conéctalo a un "QT GUI Vector Sink" con
+     Vector Size = el mismo número de puntos,  x_start = Inicio/1e6,  x_step = Paso/1e6  (eje en MHz).
+
+  La pantalla se mantiene: la imagen se reenvía cada "Refresco" segundos aunque un barrido ancho tarde
+  varios segundos. Con "Barrido progresivo" cada trozo se pinta al llegar sobre el barrido anterior.
+  Un promedio (Single Pole IIR) detrás de este bloque promedia en el tiempo (una vez por refresco).
+
+  "Corrección QT Vector Sink": el QT GUI Vector Sink de GNU Radio 3.10.9 dibuja el vector siguiente al
+  que procesa, así que un vector aislado no se ve. Con Sí cada imagen se envía dos veces seguidas.
+  Ponlo en No si la salida no va a ese visor.
+
+  Inicio, Fin y Paso fijan el tamaño del vector, así que no se pueden cambiar en caliente
+  (cambia los valores y vuelve a ejecutar el flowgraph).
+
+  Puerto de mensajes 'sweep': por cada barrido, inicio/fin/paso, traceID, timestamp, sobrecarga
+  y el pico (frecuencia y nivel).
+
+  Al arrancar pasa el equipo a app Receiver (PScan no se admite en la app DF) y modo PSCan.
+  Al parar elimina la ruta de datos y, si "Restaurar" = Sí, deja el equipo como estaba.
+
+file_format: 1
