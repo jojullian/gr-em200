@@ -39,7 +39,7 @@ Flowgraphs de ejemplo en [`examples/`](examples/):
 No necesita `sudo`. Se instala en tu usuario con enlaces simbólicos, así que puedes editar el código sin reinstalar.
 
 ```bash
-git clone https://github.com/<tu-usuario>/gr-em200.git
+git clone https://github.com/jojullian/gr-em200.git
 cd gr-em200
 ./install.sh
 ```
